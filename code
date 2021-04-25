@@ -1,0 +1,63 @@
+/*
+  AnalogReadSerial
+
+  Reads an analog input on pin 0, prints the result to the Serial Monitor.
+  Graphical representation is available using Serial Plotter (Tools > Serial Plotter menu).
+  Attach the center pin of a potentiometer to pin A0, and the outside pins to +5V and ground.
+
+  This example code is in the public domain.
+
+  http://www.arduino.cc/en/Tutorial/AnalogReadSerial
+*/
+unsigned long previousMillis = 0;        // will store last time LED was updated
+
+const long interval = 1000;           // interval at which to blink (milliseconds)
+
+void setup() {
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
+  DDRD = DDRD | B0111100;  //  portd pin 2345 as output
+  DDRB = DDRB | B00001000;  //  portb all pin as input exept 3
+  DDRD = DDRD & B0111111;  //   portd pin6 as input
+  DDRB = DDRB & B00001000;  //
+  PORTD = PORTD & B1110111;  // PD pin 3 (rs) pin low
+  PORTB = B11110111;         //input pullup port b
+  PORTD = PORTD | B1000000;  //input pullup PD pin7
+ 
+}
+
+// the loop routine runs over and over again forever:
+void loop() {
+  if ( Serial.available ()){
+    if ( Serial.read () == B10101110 ){
+      PORTB = PORTB ^ B00000010;                      //toggle PB 1
+    }
+    if ( Serial.read () == B10100110 ){
+      PORTB = PORTB ^ B00000100;                   //toggle PB 2
+    }
+    if ( Serial.read () == B10101000 ){
+      PORTB = PORTB ^ B00001000;                   //toggle PB 3
+    }
+    if ( Serial.read () == B10101101 ){
+      delay(10);
+      PORTD = PORTD | B0001000;
+      Serial.print(PIND , BIN);
+      delay(1);
+      Serial.print(PINB, BIN);
+      delay(1);
+      PORTD = PORTD & B1110111;
+    }
+        }
+  if( (PINB & (1<<PB0)) & (PINB & (1<<PB2)) ) {digitalWrite(6, HIGH);}
+  if( (PINB & (1<<PB1)) & (PINB & (1<<PB2)) ) {digitalWrite(7, HIGH);}
+  if( (PIND & (1<<PD6)) & (PINB & (1<<PB2)) ) {digitalWrite(4, HIGH);}
+  
+  delay(1);        // delay in between reads for stability
+  
+    unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;
+    PORTB = PORTB ^ B00001000;
+  }
+}
